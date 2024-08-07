@@ -4,8 +4,8 @@ module.exports = (db, app) =>{
     app.route('/account')
         .get(cookieJwtAuth, accountController.accountAuth)
         .post(accountController.login)
-        .put(accountController.putAccount)
-        .delete(accountController.deleteAccount);
+        .put(cookieJwtAuth, accountController.putAccount)
+        .delete(cookieJwtAuth, accountController.deleteAccount);
 
     app.route('/account/create')
         .post(accountController.postAccount)

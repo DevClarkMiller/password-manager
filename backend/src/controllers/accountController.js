@@ -1,7 +1,7 @@
 module.exports = (db) =>{
     const path = require('path');
     const fs = require('fs');
-    const { getAccountSQL, postAccountSQL, activateAccountSQL } = require('../sql.json');
+    const { getAccountSQL, postAccountSQL, activateAccountSQL, deleteAccountSQL, purgePassesSQL, putAccountSQL } = require('../sql.json');
     const { verifyPassword } = require('../utilities/encryption');
     const bcrypt = require('bcryptjs');
     const salt = bcrypt.genSaltSync(5);
@@ -157,11 +157,58 @@ module.exports = (db) =>{
     }
 
     const putAccount = async (req, res) =>{
-        
+        console.log("Hit putAccount controller");
+        const account = req.account;
+        const { new_firstname, new_lastname, new_password } = req.body;
+
+        if (!account || !new_firstname || !new_lastname ||!new_password)
+            return res.status(500).send("Updated details are missing, cannot update account at this time");
+
+        // "UPDATE User SET first_name = ?, last_name = ?, password = ? WHERE id = ?"
+        const params = [new_firstname, new_lastname, new_password, account?.id];
+        db.run(putAccountSQL, params, function (err){
+            if (err){
+                console.error(`Error db: ${err}`);
+                return res.status(500).send("Something went wrong while trying to update account in database, please try again later");
+            }
+            // Sends an updated cookie to reflect changed details
+            const updated_account = {
+                id: account.id,
+                email: account.email,
+                first_name: account.first_name,
+                last_name: account.last_name,
+                status: account.status,
+                type: account.type
+            };
+            const token = jwt.sign({account: updated_account}, process.env.JWT_SECRET, {expiresIn: "900s"});
+
+            res.cookie("token", token, {
+                httpOnly: true,
+            });
+            res.status(200).send("Successfully updated account details");
+        });
     }
 
     const deleteAccount = async (req, res) =>{
-        
+        console.log('Hit deleteAccount controller');
+        const account = req.account;
+        if(!account?.id) return res.status(500).send("Something went wrong with deleting your account");
+
+        //First purge all the passwords associated with the account
+
+        db.run(purgePassesSQL, [account.id], function (err){
+            if(err) {
+                console.error(err);
+                return res.status(500).send("Couldn't purge passwords from account!");
+            }
+            db.run(deleteAccountSQL, [account.id], function (err){
+                if(err) {
+                    console.error(err);
+                    return res.status(500).send("Couldn't delete account from database, sorry.");
+                }
+                res.status(200).send("Successfully deleted all passwords and account, sorry to see you go :/");
+            });
+        });
     }
 
     return{

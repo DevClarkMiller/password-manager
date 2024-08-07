@@ -41,26 +41,10 @@ def get_all_passwords():
         if(response.status_code == 200):
             globals.passwords = response.json()
         else:
-            print(response.text)
+            cprint(response.text, "yellow")
 
     except Exception as e:
         cprint(f"Error with getting all passwords: {e}", "red")
-
-def update_config(cookies):
-    token = cookies["token"]
-    # Update the config file
-    globals.config = {
-        "email": globals.config["email"],
-        "password": globals.config["password"],
-        "token": token
-    }
-
-    config_json = json.dumps(globals.config, indent=4)
-
-    with open(globals.CONFIG_PATH, "w") as outfile:
-        outfile.write(config_json)
-
-    cprint('Updated your config file', "yellow")
 
 def login():
     url = f'{globals.BASE_URL}/account'
@@ -70,7 +54,7 @@ def login():
         if response.status_code <= 205: # If token is valid
             data = response.json()
             if(response.cookies.get_dict()):
-                update_config(response.cookies)
+                helpers.update_config(response.cookies)
         else:   # If token is not valid
             # Do a login request, append new token to the config file
             data = {
@@ -79,13 +63,15 @@ def login():
             }
 
             response = requests.post(url, json=data, cookies=cookies, timeout=10)
+            if response.status_code > 205:
+                raise Exception(response.text)
             data = response.json()
 
             if(response.cookies.get_dict()):
-                update_config(response.cookies)
+                helpers.update_config(response.cookies)
         return True
-    except Exception as e:
-        cprint(f'Seems to be an issue with logging in or connecting to the server.', "yellow")
+    except Exception as ex:
+        cprint(f'Error: {ex}', "yellow")
         if login_or_create():
             return True
         else:
