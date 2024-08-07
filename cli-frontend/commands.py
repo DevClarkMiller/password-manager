@@ -1,7 +1,7 @@
 import requests, json, globals
 from enum import Enum
 from helpers import check_index_validity, isNumber, print_sources
-from termcolor import colored
+from termcolor import colored, cprint
 
 class Commands(Enum):
     ADD_SOURCE = 1
@@ -81,23 +81,32 @@ def create_account(email=None, password=None, firstname=None, lastname=None):
         if response.status_code > 205:
             raise Exception("Return code is abnormal: ", response.status_code)
         else:
-            print(colored("Account successfully created!", "green"))
+            cprint("Account successfully created!", "green")
             return True
 
     except Exception as ex:
-        print(colored("Something went wrong with creating your account", "red"))
+        cprint("Something went wrong with creating your account", "red")
         return False
 
 def delete_account():
     return True
 
 def view_account():
+    add_dashes = lambda n: f"{"":─<{n}}"
+    print(f"┌{add_dashes(48)}┐")
+    print(f"│{"Account Details":<47} │")
+    print(f"│{add_dashes(48)}│")
+    print(f"│{"Email:":<10}{globals.config["email"]:<38}│")
+    print(f"│{"Password:":<10}{globals.config["password"]:<38}│")
+    print(f"└{add_dashes(48)}┘")
+    # To do, also show first and last name here too!
     return True
 
 def edit_account():
     return True
 
 def view_full_source():    
+    
     return True
 
 def edit_source():
@@ -106,6 +115,55 @@ def edit_source():
         return False
     
     index = int(index) - 1
+
+    source = globals.passwords[index]
+
+    # TODO - EDIT LINES WITH CURSES
+
+    old_site = source["site"]
+
+    username = input(f"Enter new site username, original was {source["username"]}: ")
+    if not username:
+        username = source["username"]
+
+    password = input(f"Enter new site password, original was {source["pass"]}: ")
+    if not password:
+        password = source["pass"]
+
+    note = input(f"Enter new site note, original was {source["note"]}: ")
+    if not note:
+        note = source["note"]
+
+    site = input(f"Enter new site url, original was {source["site"]}: ")
+    if not site:
+        site = source["site"]
+
+    try:
+        url = f"{globals.BASE_URL}/password"
+
+        data = {
+            "username": username,
+            "pass": password,
+            "note": note,
+            "old_site": old_site,
+            "new_site": site
+        }
+        response = requests.put(url, json=data, cookies={"token": globals.config["token"]})
+        if response.status_code > 205:
+            raise Exception(response.text)
+        else:
+            cprint(response.text, "green")
+            source = {
+                "username": username,
+                "pass": password,
+                "note": note,
+                "site": site
+            }
+            globals.passwords[index] = source   # Updates the index of the edited source
+    except Exception as ex:
+        cprint(ex, "red")
+        cprint("Something went wrong with updating this source", "red")
+        return False
 
     return True
 
@@ -133,7 +191,19 @@ def print_commands():
         print(f"{command.value}. {command.name}")
 
 
-def add_new_pass(username="username", password="password", note="no note provided", site="google.ca"):
+def add_new_pass(username=None, password=None, note=None, site=None):
+    if username is None:    
+        username = input("Enter site username: ")
+
+    if password is None:  
+        password = input("Enter site password: ")
+
+    if note is None:  
+        note = input("Enter site note: ")
+
+    if site is None:  
+        site = input("Enter site url: ")
+
     cookies = {"token": globals.config["token"]}
     try:
         url = f'{globals.BASE_URL}/password'
@@ -151,7 +221,7 @@ def add_new_pass(username="username", password="password", note="no note provide
         globals.passwords.append(data)
         return True
     except:
-        print(colored("Something went wrong with creating password in database!", "red"))
+        cprint("Something went wrong with creating password in database!", "red")
         return False
 
 def get_commands():
@@ -177,23 +247,21 @@ def get_commands():
     
     match cmd:
         case Commands.ADD_SOURCE.value:
-            username = input("Enter site username: ")
-            password = input("Enter site password: ")
-            note = input("Enter site note: ")
-            site = input("Enter site url: ")
-            return add_new_pass(username=username, password=password, note=note, site=site)
+            return add_new_pass()
 
         case Commands.EDIT_SOURCE.value:
             return edit_source()
         
         case Commands.VIEW_FULL_SOURCE.value:
-            return 
+            return view_full_source()
 
         case Commands.DELETE_SOURCE.value:
             return delete_source()
 
         case Commands.LIST_SOURCES.value:
-            print_sources()
+            # Doesn't really matter what the return is, 
+            # this shouldn't make the program exit
+            print_sources() 
 
         case Commands.EDIT_ACCOUNT.value:
             return edit_account()
@@ -212,7 +280,18 @@ def get_commands():
 
     return True
 
-def login_or_create(cmd):
+def login_or_create():
+    print(f'Here are your options: ')
+    print(f'1. Sign in')
+    print(f'2. Create account')
+
+    cmd = input('Select valid choice or a non number to exit: ')
+
+    if check_index_validity(cmd, 3):
+        cmd = int(cmd)
+    else:
+        return False
+
     if cmd - 1 == 0:
         return set_account()
     else:

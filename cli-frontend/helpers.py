@@ -46,7 +46,7 @@ def isNumber(s):
     return True
 
 def check_index_validity(index, list_length):
-    if not isNumber(index):
+    if not isNumber(index) or not index:
         return False
     
     index = int(index) - 1
@@ -69,7 +69,7 @@ def print_sources():
     max_note = max_source_lengths["note"] + COL_SPACING
     max_site = max_source_lengths["site"] + COL_SPACING + 3 # The extra 3 spacings is for the index listing
 
-    add_dashes = lambda n: f"{"":―<{n}}"
+    add_dashes = lambda n: f"{"":─<{n}}"
     num_dashes = max_user + max_pass + max_note + max_site - 2
     
     # Prints off a header with correct spacing for each of the source lengths

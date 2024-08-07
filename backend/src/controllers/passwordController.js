@@ -70,19 +70,21 @@ module.exports = (db) =>{
 
     const putPass = async (req, res) =>{
         console.log('Hit putPass controller');
-        let { username, pass, note, site } = req.body;
+        let { username, pass, note, old_site, new_site } = req.body;
         const { id } = req.account;
 
-        blankNulls([username, pass, note, site]);
+        blankNulls([username, pass, note, old_site, new_site]);
 
         username = encrypt(username);
         pass = encrypt(pass);
         note = encrypt(note);
 
-        db.run(putPassSQL, [username, pass, note, id, site], function (err) {
+        const params = [username, pass, note, new_site, id, old_site];
+
+        db.run(putPassSQL, params, function (err) {
             if(err) {
                 console.error(err);
-                res.status(500).send('Something went wrong while trying to update source data, please try again later');
+                return res.status(500).send('Something went wrong while trying to update source data, please try again later');
             }
             res.status(200).send('Information successfully updated');
         });
@@ -96,10 +98,9 @@ module.exports = (db) =>{
         db.run(deletePassSQL, [id, site], function (err) {
             if(err){
                 console.error(err);
-                res.status(500).send("Issue with deleting data");
-            }else{
-                res.status(200).send("Source successfully deleted");
+                return res.status(500).send("Issue with deleting data");
             }
+            res.status(200).send("Source successfully deleted");
         });
     }
 

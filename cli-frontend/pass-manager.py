@@ -1,10 +1,10 @@
 import requests, json, os
 from colorama import init
-from termcolor import colored
+from termcolor import colored, cprint
 
 # Custom scripts
 import helpers, globals
-from commands import set_account, login_or_create
+from commands import set_account, login_or_create, get_commands
 
 init()
 
@@ -20,8 +20,9 @@ def init_config():
         globals.config = json.load(config_json) 
         config_json.close()
     except FileNotFoundError as e:
-        print(colored(f"Config file {globals.CONFIG_PATH} not found or was empty!", "red"))
-        set_account()
+        cprint(f"Config file {globals.CONFIG_PATH} not found or was empty!", "red")
+        
+        login_or_create()
 
 def print_password(source):
     print(source["username"])
@@ -43,7 +44,7 @@ def get_all_passwords():
             print(response.text)
 
     except Exception as e:
-        print(colored(f"Error with getting all passwords: {e}", "red"))
+        cprint(f"Error with getting all passwords: {e}", "red")
 
 def update_config(cookies):
     token = cookies["token"]
@@ -59,7 +60,7 @@ def update_config(cookies):
     with open(globals.CONFIG_PATH, "w") as outfile:
         outfile.write(config_json)
 
-    print(colored('Updated your config file', "light_green"))
+    cprint('Updated your config file', "yellow")
 
 def login():
     url = f'{globals.BASE_URL}/account'
@@ -84,40 +85,36 @@ def login():
                 update_config(response.cookies)
         return True
     except Exception as e:
-        #print(f'Error with logging in', e)
-        print(colored(f'Seems to be an issue with logging in or connecting to the server.', "yellow"))
-        print(f'Here are your options: ')
-        print(f'1. Sign in')
-        print(f'2. Create account')
-
-        cmd = input('Select valid choice or a non number to exit: ')
-        if(helpers.check_index_validity(cmd, 3)):
-            cmd = int(cmd)
-            return login_or_create(cmd)
+        cprint(f'Seems to be an issue with logging in or connecting to the server.', "yellow")
+        if login_or_create():
+            return True
         else:
             exit(1)
 
 def start():
-    helpers.get_ascii_art()
-    print(helpers.splash_text)
-    #1. Initialize your programs configuration from the json file
-    init_config()
+    try:
+        helpers.get_ascii_art()
+        print(helpers.splash_text)
+        #1. Initialize your programs configuration from the json file
+        init_config()
 
-    #2. Make auth request to the rest api, if fails, make login request
-    if not login():
-        print(colored("Our servers seem to be down :/", "red"))
-        print(colored("Please try logging in or creating an account later", "yellow"))
-        exit()
+        #2. Make auth request to the rest api, if fails, make login request
+        if not login():
+            cprint("Our servers seem to be down :/", "red")
+            cprint("Please try logging in or creating an account later", "yellow")
+            exit()
 
-    print(f"Signed in as: {colored(globals.config["email"], 'green')}")
+        print() # Simply prints a newline character
+        print(f"Signed in as: {colored(globals.config["email"], 'green')}")
 
-    get_all_passwords()
+        get_all_passwords()
 
-    helpers.print_sources() 
+        helpers.print_sources() # Prints off all of the users 'sources'
 
-    from commands import get_commands
+        running = True
+        while running:
+            running = get_commands()
+    except KeyboardInterrupt:
+        cprint("\nExiting program", "yellow")
 
-    running = True
-    while running:
-        running = get_commands()
 start()
