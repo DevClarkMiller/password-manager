@@ -2,7 +2,7 @@ module.exports = (db) =>{
     const path = require('path');
     const fs = require('fs');
     const { getAccountSQL, postAccountSQL, activateAccountSQL } = require('../sql.json');
-    const { verifyPassword } = require('../utilities/encyrption');
+    const { verifyPassword } = require('../utilities/encryption');
     const bcrypt = require('bcryptjs');
     const salt = bcrypt.genSaltSync(5);
     const jwt = require('jsonwebtoken');
@@ -20,14 +20,14 @@ module.exports = (db) =>{
         if(!account) return res.status(403).send("User isn't authorized");
         delete account.id;  //Removes the id from the return value of this function
         delete account.password;
-
+        
         res.json(account);
     }
 
     const login = async (req, res) =>{
         console.log('Hit login controller');
 
-        const { email, password, is_non_browser} = req.body;
+        const { email, password } = req.body;
 
         try{
             db.get(getAccountSQL, [email], async function (err, row){
@@ -52,18 +52,11 @@ module.exports = (db) =>{
                     type: row.type
                 };
 
-                if(is_non_browser == "true"){
-                    res.json({
-                        account: account,
-                        token: token
-                    });
-                }else{
-                    res.cookie("token", token, {
-                        httpOnly: true,
-                    });
-
-                    res.json(account);
-                }
+                res.cookie("token", token, {
+                    httpOnly: true,
+                });
+                
+                res.json(account);
             });
 
         }catch(err){

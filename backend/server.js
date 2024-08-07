@@ -1,12 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const app = express();
 
 const port = process.env.PORT;
 const DB_PATH = process.env.DB_PATH;
 
+app.use(cookieParser());
 app.use(cors());
 app.use(express.json());
 

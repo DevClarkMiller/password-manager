@@ -1,11 +1,9 @@
 module.exports = (db) => {
     const jwt = require('jsonwebtoken');
-    const { getAccountSQL } = require('../sql.json');
-    const { verifyPassword } = require('../utilities/encyrption'); 
 
     const cookieJwtAuth = async (req, res, next) =>{
         // Sets the token based off of the query if given or the req cookies
-        const token = (req?.query?.token) ? req?.query?.token : req?.cookies?.token;
+        const token = req.cookies?.token;
 
         try{
             if(!token) throw new Error("Token not found");
@@ -19,13 +17,9 @@ module.exports = (db) => {
                 const newToken = jwt.sign({account: account}, process.env.JWT_SECRET, {expiresIn: "900s"});
                 
                 // Puts a token into the request header if a token was recieved in the query
-                if(req.query.token){
-                    req.token = newToken;
-                }else{
-                    res.cookie("token", newToken, {
-                        httpOnly: true, //Prevents browser javascript from seeing the cookies
-                    });
-                }
+                res.cookie("token", newToken, {
+                    httpOnly: true, //Prevents browser javascript from seeing the cookies
+                });
                 console.log('Users token has been refreshed!');
             }
             
@@ -34,10 +28,8 @@ module.exports = (db) => {
         }catch(err){
             //console.error(err);
             console.error("User token expired or doesn't exist");
+            res.clearCookie("token");
 
-            // Only clear the token if it's coming from a web environment
-            if(req.query.token)
-                res.clearCookie("token");
             return res.status(403).send("User token expired or doesn't exist");
         }
     }
