@@ -53,8 +53,9 @@ def login():
         response = requests.get(url, cookies=cookies, timeout=10)
         if response.status_code <= 205: # If token is valid
             data = response.json()
+            print(data)
             if(response.cookies.get_dict()):
-                helpers.update_config(response.cookies)
+                helpers.update_config(cookies=response.cookies, data=data)
         else:   # If token is not valid
             # Do a login request, append new token to the config file
             data = {
@@ -68,14 +69,16 @@ def login():
             data = response.json()
 
             if(response.cookies.get_dict()):
-                helpers.update_config(response.cookies)
+                helpers.update_config(cookies=response.cookies, data=data)
+                
         return True
     except Exception as ex:
         cprint(f'Error: {ex}', "yellow")
-        if login_or_create():
-            return True
-        else:
-            exit(1)
+        while True:
+            resolved = login_or_create()
+            if resolved:
+                break
+        return True
 
 def start():
     try:

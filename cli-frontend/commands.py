@@ -3,6 +3,7 @@ from enum import Enum
 from helpers import check_index_validity, isNumber, print_sources, add_dashes, update_config
 from termcolor import colored, cprint
 from xtra_chars import Xtra_Chars
+from prompt_toolkit import prompt
 
 class Commands(Enum):
     ADD_SOURCE = 1
@@ -42,7 +43,7 @@ def set_account(email=None, password=None):
         with open(globals.CONFIG_PATH, "w") as outfile:
             outfile.write(config_json)
 
-        return True
+        return False
     except Exception as ex:
         print(colored(ex, "light_red"))
 
@@ -102,8 +103,10 @@ def view_account():
     print(f"┌{add_dashes(48)}┐")
     print(f"│{"Account Details":<47} │")
     print(f"│{add_dashes(48)}│")
-    print(f"│{"Email:":<10}{globals.config["email"]:<38}│")
-    print(f"│{"Password:":<10}{globals.config["password"]:<38}│")
+    print(f"│{"Email:":<12}{globals.config["email"]:<36}│")
+    print(f"│{"Password:":<12}{globals.config["password"]:<36}│")
+    print(f"│{"Firstname:":<12}{globals.config["firstname"]:<36}│")
+    print(f"│{"Lastname:":<12}{globals.config["lastname"]:<36}│")
     print(f"└{add_dashes(48)}┘")
     # To do, also show first and last name here too!
     return True
@@ -112,13 +115,13 @@ def edit_account(new_firstname=None, new_lastname=None, new_password=None):
     try:
         # TODO - Store first & last name in config 
         if new_firstname is None:
-            new_firstname = input("Enter new firstname: ")
+            new_firstname = prompt("Edit firstname: ", default=globals.config["firstname"])
 
         if new_lastname is None:
-            new_lastname = input("Enter new lastname: ")
+            new_lastname = prompt("Edit lastname: ", default=globals.config["lastname"])
 
         if new_password is None:
-            new_password = input("Enter new password: ")
+            new_password = prompt("Enter new password: ", default=globals.config["password"])
 
         print() # Just for a newline character
 
@@ -136,7 +139,7 @@ def edit_account(new_firstname=None, new_lastname=None, new_password=None):
 
         if(response.cookies.get_dict()):
             globals.config["password"] = new_password
-            update_config(response.cookies)
+            update_config(cookies=response.cookies)
             cprint(response.text, "light_green")
         return True
     except Exception as ex:
@@ -144,10 +147,11 @@ def edit_account(new_firstname=None, new_lastname=None, new_password=None):
         return False
    
 
-def view_full_source():    
-    index = input("Enter index to view: ")
-    if not check_index_validity(index, len(globals.passwords)):
-        return False
+def view_full_source(index=None):    
+    if not index:
+        index = input("Enter index to view: ")
+        if not check_index_validity(index, len(globals.passwords)):
+            return False
     
     index = int(index) - 1
 
@@ -176,25 +180,17 @@ def edit_source():
 
     source = globals.passwords[index]
 
-    # TODO - EDIT LINES WITH CURSES
+    # TODO - EDIT LINES WITH PROMPTS INSTEAD
 
     old_site = source["site"]
 
-    username = input(f"Enter new site username, original was {source["username"]}: ")
-    if not username:
-        username = source["username"]
+    username = prompt("Edit site username: ", default=source["username"])
 
-    password = input(f"Enter new site password, original was {source["pass"]}: ")
-    if not password:
-        password = source["pass"]
+    password = prompt("Edit site password: ", default=source["pass"])
 
-    note = input(f"Enter new site note, original was {source["note"]}: ")
-    if not note:
-        note = source["note"]
+    note = prompt("Edit site note: ", default=source["note"])
 
-    site = input(f"Enter new site url, original was {source["site"]}: ")
-    if not site:
-        site = source["site"]
+    site = prompt("Edit site url: ", default=source["site"])
 
     try:
         url = f"{globals.BASE_URL}/password"
@@ -218,12 +214,12 @@ def edit_source():
                 "site": site
             }
             globals.passwords[index] = source   # Updates the index of the edited source
+            view_full_source(index + 1)  # Displays the source right after modifying it
+            return True
     except Exception as ex:
         cprint(ex, "red")
         cprint("Something went wrong with updating this source", "red")
         return False
-
-    return True
 
 def delete_source():
     index = input("Enter index to delete: ")
@@ -237,10 +233,11 @@ def delete_source():
         url = f'{globals.BASE_URL}/password'
         response = requests.delete(url, params={"site": source["site"]}, cookies={"token": globals.config["token"]})
         print(response.text)
+        print_sources()
+        return True
     except Exception as ex:
         print("Error when deleting source: ", ex)
-
-    return True
+        return False
 
 def print_commands():
     #print(menu_text)
@@ -251,16 +248,16 @@ def print_commands():
 
 def add_new_pass(username=None, password=None, note=None, site=None):
     if username is None:    
-        username = input("Enter site username: ")
+        username = prompt("Enter site username: ", default="username")
 
     if password is None:  
-        password = input("Enter site password: ")
+        password = prompt("Enter site password: ", default="password")
 
     if note is None:  
-        note = input("Enter site note: ")
+        note = prompt("Enter site note: ", default="no note found here...")
 
     if site is None:  
-        site = input("Enter site url: ")
+        site = prompt("Enter site url: ", default="https://ex@test.com")
 
     cookies = {"token": globals.config["token"]}
     try:
@@ -303,15 +300,6 @@ def get_commands():
     if cmd < 0 or cmd > len(Commands):
         return False
     
-    # ADD_SOURCE = 1
-    # EDIT_SOURCE = 2
-    # VIEW_FULL_SOURCE = 3
-    # DELETE_SOURCE = 4
-    # LIST_SOURCES = 5
-    # EDIT_ACCOUNT = 6
-    # VIEW_ACCOUNT = 7
-    # DELETE_ACCOUNT = 8
-    
     match cmd:
         case Commands.ADD_SOURCE.value:
             return add_new_pass()
@@ -326,8 +314,6 @@ def get_commands():
             return delete_source()
 
         case Commands.LIST_SOURCES.value:
-            # Doesn't really matter what the return is, 
-            # this shouldn't make the program exit
             if len(globals.passwords) == 0:
                 cprint("No user passwords found", "yellow")
                 return True
@@ -357,6 +343,7 @@ def login_or_create():
     print(f'Here are your options: ')
     print(f'1. Sign in')
     print(f'2. Create account')
+    print(f'3. Exit')
 
     cmd = input('Select valid choice or a non number to exit: ')
 
@@ -365,7 +352,9 @@ def login_or_create():
     else:
         return False
 
-    if cmd - 1 == 0:
+    if cmd == 1:
         return set_account()
-    else:
+    elif cmd == 2:
         return create_account()
+    else:
+        exit(0)

@@ -164,8 +164,10 @@ module.exports = (db) =>{
         if (!account || !new_firstname || !new_lastname ||!new_password)
             return res.status(500).send("Updated details are missing, cannot update account at this time");
 
+        const hashedPass = await bcrypt.hash(new_password, salt);
+
         // "UPDATE User SET first_name = ?, last_name = ?, password = ? WHERE id = ?"
-        const params = [new_firstname, new_lastname, new_password, account?.id];
+        const params = [new_firstname, new_lastname, hashedPass, account?.id];
         db.run(putAccountSQL, params, function (err){
             if (err){
                 console.error(`Error db: ${err}`);

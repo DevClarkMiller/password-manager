@@ -1,5 +1,7 @@
 {
     "email": "clarkmillermail@gmail.com",
-    "password": "12345",
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50Ijp7ImlkIjoxNywiZW1haWwiOiJjbGFya21pbGxlcm1haWxAZ21haWwuY29tIiwiZmlyc3RfbmFtZSI6IkNsYXJrIiwibGFzdF9uYW1lIjoiTWlsbGVyIiwic3RhdHVzIjoiYWN0aXZlIiwidHlwZSI6IkJhc2ljIn0sImlhdCI6MTcyMzA2NTEyMywiZXhwIjoxNzIzMDY2MDIzfQ.6pz12Jm2ka7VEqeSLrBWs8OHaU1sRdja3bUhJrz0x2c"
+    "password": "test",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50Ijp7ImlkIjoxNywiZW1haWwiOiJjbGFya21pbGxlcm1haWxAZ21haWwuY29tIiwiZmlyc3RfbmFtZSI6IkNsYXJrIiwibGFzdF9uYW1lIjoiTWlsbGVyIiwicGFzc3dvcmQiOiIkMmEkMDUkRTBiOVloSXFMdTBYVnNHbUtqaFh1dWdVM2FXRzF5SW9wdjR3aDBkS3o3T0xPcHdyZ0hmRGEiLCJzdGF0dXMiOiJhY3RpdmUiLCJ0eXBlIjoiQmFzaWMifSwiaWF0IjoxNzIzMDk1NDIyLCJleHAiOjE3MjMwOTYzMjJ9.HGetyX8aOdltV_4fkFOv2_aGYUCRWD80eLqL8lBNj64",
+    "firstname": "Clark",
+    "lastname": "Miller"
 }

@@ -87,14 +87,15 @@ def print_sources():
 
     print(f"└{add_dashes(num_dashes + 3)}┘")
 
-def update_config(cookies):
+def update_config(cookies=None, data=None):
     token = cookies["token"]
     # Update the config file
-    globals.config = {
-        "email": globals.config["email"],
-        "password": globals.config["password"],
-        "token": token
-    }
+    if data:
+        globals.config["firstname"] = data["first_name"]
+        globals.config["lastname"] = data["last_name"]
+
+    if token:
+        globals.config["token"] = token
 
     config_json = json.dumps(globals.config, indent=4)
 
