@@ -1,15 +1,28 @@
+const path = require('path');
+const dotenv = require('dotenv');
+const env = process.env.NODE_ENV || "development";
+const envFile = `.env.${env}`;
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+
 const express = require('express');
+const ipCheck = require('./src/middleware/ipCheck');
 const cors = require('cors');
 const sqlite3 = require('sqlite3');
 const cookieParser = require('cookie-parser');
-require('dotenv').config();
+
 const app = express();
 
 const port = process.env.PORT;
 const DB_PATH = process.env.DB_PATH;
 
+const corsConfig = {
+    origin: process.env.ALLOWED_ORIGIN,
+    credentials: true
+}
+
+app.use(ipCheck);
+app.use(cors(corsConfig));
 app.use(cookieParser());
-app.use(cors());
 app.use(express.json());
 
 // Open connection with the database

@@ -2,6 +2,8 @@
 /node_modules
 node_modules/
 
+.env.production
+.env.development
 .env
 *.db
 iv.txt
@@ -10,3 +12,6 @@ config.json
 
 __pycache__/
 *.pyc
+dist/
+pass-manager.spec
+build/

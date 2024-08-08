@@ -139,7 +139,12 @@ def edit_account(new_firstname=None, new_lastname=None, new_password=None):
 
         if(response.cookies.get_dict()):
             globals.config["password"] = new_password
-            update_config(cookies=response.cookies)
+            updated_account = {
+                "first_name": new_firstname,
+                "last_name": new_lastname
+            }
+
+            update_config(cookies=response.cookies, data=updated_account)
             cprint(response.text, "light_green")
         return True
     except Exception as ex:
@@ -350,7 +355,7 @@ def login_or_create():
     if check_index_validity(cmd, 3):
         cmd = int(cmd)
     else:
-        return False
+        exit()
 
     if cmd == 1:
         return set_account()

@@ -9,4 +9,9 @@ module.exports = (db, app) =>{
 
     app.route('/password/all')
         .get(cookieJwtAuth, passController.getAllPass)
-};
+
+    app.route('/test')
+        .get((req, res) =>{
+            res.send(`This is a test, your origin is ${req.get('host')}`)
+        })
+}

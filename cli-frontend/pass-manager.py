@@ -4,7 +4,7 @@ from termcolor import colored, cprint
 
 # Custom scripts
 import helpers, globals
-from commands import set_account, login_or_create, get_commands
+from commands import login_or_create, get_commands
 
 init()
 
@@ -53,7 +53,6 @@ def login():
         response = requests.get(url, cookies=cookies, timeout=10)
         if response.status_code <= 205: # If token is valid
             data = response.json()
-            print(data)
             if(response.cookies.get_dict()):
                 helpers.update_config(cookies=response.cookies, data=data)
         else:   # If token is not valid
