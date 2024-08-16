@@ -1,0 +1,13 @@
+{
+    "getAllPassSQL": "SELECT * FROM Password WHERE user_id = ?",
+    "getPassSQL": "SELECT username, pass, note FROM Password WHERE user_id = ? AND site = ?",
+    "postPassSQL": "INSERT INTO Password (username, pass, note, site, user_id) VALUES (?,?,?,?,?) ",
+    "putPassSQL": "UPDATE Password set username = ?, pass = ?, note = ?, site = ? WHERE user_id = ? AND site = ?",
+    "deletePassSQL": "DELETE FROM Password WHERE user_id = ? AND site = ?",
+    "purgePassesSQL": "DELETE FROM Password WHERE user_id = ?",
+    "getAccountSQL": "SELECT u.id, u.email, u.first_name, u.last_name, u.password, u.status, at.name AS 'type' FROM User u INNER JOIN Account_Types at ON u.type_id = at.id WHERE email = ?",
+    "putAccountSQL": "UPDATE User SET first_name = ?, last_name = ?, password = ? WHERE id = ?",
+    "postAccountSQL": "INSERT INTO User (email, first_name, last_name, password, status, type_id) VALUES(?,?,?,?,?,?)",
+    "activateAccountSQL": "UPDATE User SET status = 'active' WHERE id = ?",
+    "deleteAccountSQL": "DELETE FROM User WHERE id = ?"
+}
