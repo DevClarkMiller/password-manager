@@ -12,6 +12,5 @@ config.json
 
 __pycache__/
 *.pyc
-dist/
 pass-manager.spec
 build/
